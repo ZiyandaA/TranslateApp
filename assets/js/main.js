@@ -10,21 +10,40 @@ $(document).ready(function(){
             var languageCode = $('.inputLanguageCode option:selected').data('code');
 
             if(inputValue!=""){
+                
+                if (/[#@\!\$]/.test(inputValue)) { // If any of the characters #@!$ are in the input...
+                    // Show the error message here 
+                        $("#error").show();
+                        $(".translated_text").text("")
+                        return;
+                  }
+                  else{ 
+                  $("#error").hide();
+            
+
                 var requestUrl =GoogleTranslateApiUrl + "?key=" + googleKey +"&q="+inputValue+"&target="+targetLanguage;
                 $.ajax({
                     url: requestUrl
-                }).done(function(response){console.log(response)
+                }).done(function(response){
                     if(response.data != undefined && response.data['translations']!=undefined){
                         if(response.data['translations'][0]['translatedText']!=undefined){
                             var trasnlation = response.data['translations'][0]['translatedText'];
-                            $('.outputText').text(trasnlation);
+                            $('.translated_text').text(trasnlation);
+                            $('.outputText').removeClass("hide").attr("aria-hidden", "false")
+                        
                             textToSpeech(trasnlation,languageCode);
+                        
                         }
                     }
                     
            });
             }
+        }
     });
+      
+    
+
+
     //
     //$('.speaker').click(function(){
     // audio.play();
@@ -53,11 +72,14 @@ function textToSpeech(inputText,languageCode){
           dataType   : "json",
           error: function(res){
               console.log(res.responseText)
-              $(".AudioButton").removeClass("btn-success").addClass("btn-disabled").text("No Audio").off("click");
+              $(".AudioButton").removeClass("btn-success").addClass("hide").off("click");
           }
     }).done(function(response){ console.log(response)
         audio = new Audio("data:audio/wav;base64," + response.audioContent);
+        // console.log(response.audioContent);
+        console.log(response)
         audio.play();
-        $(".AudioButton").removeClass("btn-disabled").addClass("btn-success").text("Play Audio").on("click", function(){audio.play()});
+        $(".AudioButton").removeClass("hide").addClass("btn-success").text("Play Audio").on("click", function(){audio.play()});
+        $("InputValue").removeid("error")
     });
 }
